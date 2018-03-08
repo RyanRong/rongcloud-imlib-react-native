@@ -1,0 +1,24 @@
+{
+  "name": "rongcloud-imlib-react-native",
+  "version": "0.1.3",
+  "description": "RN IM of solution",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RyanRong/RongIM-React-Native.git"
+  },
+  "keywords": [
+    "react-native",
+    "im",
+    "rongcloud"
+  ],
+  "author": "Ryan",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/RyanRong/RongIM-React-Native/issues"
+  },
+  "homepage": "https://github.com/RyanRong/RongIM-React-Native#readme"
+}

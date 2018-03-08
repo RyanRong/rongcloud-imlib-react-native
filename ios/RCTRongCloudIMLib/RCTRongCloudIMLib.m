@@ -357,9 +357,9 @@ RCT_EXPORT_METHOD(getLatestMessages:(int)conversationType
     NSArray *msgArray = [[self getClient] getLatestMessages:conversationType targetId:targetId count:count];
     if (msgArray) {
         NSLog(@"msg:  %@", msgArray);
-        NSString *msgJsonString = [self convertMsgList:msgArray];
-        NSLog(@"msg:  %@", msgJsonString);
-        resolve(msgJsonString);
+        NSArray *msgArr = [self convertMsgList:msgArray];
+        NSLog(@"msg:  %@", msgArr);
+        resolve(msgArr);
     } else {
         reject(@"no_lastest_local_msg", @"There were no lastest local msg", nil);
     }
@@ -391,9 +391,9 @@ RCT_EXPORT_METHOD(getHistoryMessages:(int)conversationType
     NSArray *msgArray = [[self getClient] getHistoryMessages:conversationType targetId:targetId oldestMessageId:oldestMessageId count:count];
     if (msgArray) {
         NSLog(@"msg:  %@", msgArray);
-        NSString *msgJsonString = [self convertMsgList:msgArray];
-        NSLog(@"msg:  %@", msgJsonString);
-        resolve(msgJsonString);
+        NSArray *msgArr = [self convertMsgList:msgArray];
+        NSLog(@"msg:  %@", msgArr);
+        resolve(msgArr);
     } else {
         reject(@"no_local_msg", @"There were no local msg", nil);
     }
@@ -698,7 +698,7 @@ RCT_EXPORT_METHOD(removeConversation:(NSString *)type
 /*
     将RCMessage的NSArray转为jsonString
  */
--(NSString *)convertMsgList:(NSArray *) msgList{
+-(NSMutableArray *)convertMsgList:(NSArray *) msgList{
 
     NSMutableArray * arr = [[NSMutableArray alloc] init];
 
@@ -706,9 +706,10 @@ RCT_EXPORT_METHOD(removeConversation:(NSString *)type
         NSMutableDictionary *dict = [self convertMessage: message];
         [arr addObject: dict];
     }
-    NSData  * jsonData = [NSJSONSerialization dataWithJSONObject:arr options:NSJSONWritingPrettyPrinted error: nil ];
-    NSString * jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-    return jsonString;
+        return arr;
+//    NSData  * jsonData = [NSJSONSerialization dataWithJSONObject:arr options:NSJSONWritingPrettyPrinted error: nil ];
+//    NSString * jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+
 }
 
 -(NSString *)convertMsgresultList:(NSArray *) msgList{
