@@ -8,6 +8,7 @@ npm install rongcloud-imlib-react-native --save
 react-native link rongcloud-imlib-react-native
 
 ##IOS Config
+
 Add Libs:
 
 Target -> APP -> Build Phases -> Link Binary With Libraries -> add Other:
@@ -24,6 +25,7 @@ add framework search paths & library search paths "$(PROJECT_DIR)/../node_module
 
 
 ##Android Config
+
 settings.gradle
 
 	include ':rongcloud-imlib-react-native'
