@@ -18,7 +18,7 @@ RCT_EXPORT_MODULE(RongCloudIMLibModule)
 RCT_EXPORT_METHOD(initWithAppKey:(NSString *) appkey) {
     NSLog(@"initWithAppKey %@", appkey);
     [[self getClient] initWithAppKey:appkey];
-
+    
     [[self getClient] setReceiveMessageDelegate:self object:nil];
 }
 
@@ -31,13 +31,13 @@ RCT_EXPORT_METHOD(connectWithToken:(NSString *) token
                   rejecter:(RCTPromiseRejectBlock)reject) {
     NSLog(@"connectWithToken %@", token);
     //NSLog(@"connect_status %ld", (long)[[self getClient] getConnectionStatus]);
-
+    
     void (^successBlock)(NSString *userId);
     successBlock = ^(NSString* userId) {
         NSArray *events = [[NSArray alloc] initWithObjects:userId,nil];
         resolve(@[[NSNull null], events]);
     };
-
+    
     void (^errorBlock)(RCConnectErrorCode status);
     errorBlock = ^(RCConnectErrorCode status) {
         NSString *errcode;
@@ -69,7 +69,7 @@ RCT_EXPORT_METHOD(connectWithToken:(NSString *) token
             case RC_INVALID_ARGUMENT:
                 errcode = @"RC_INVALID_ARGUMENT";
                 break;
-
+                
             default:
                 errcode = @"OTHER";
                 break;
@@ -80,9 +80,9 @@ RCT_EXPORT_METHOD(connectWithToken:(NSString *) token
     tokenIncorrectBlock = ^() {
         reject(@"TOKEN_INCORRECT", @"tokenIncorrect", nil);
     };
-
+    
     NSInteger connectStatus = [[self getClient] getConnectionStatus];
-
+    
     if(connectStatus != ConnectionStatus_Connected
        && connectStatus != ConnectionStatus_Connecting){
         [[self getClient] connectWithToken:token success:successBlock error:errorBlock tokenIncorrect:tokenIncorrectBlock];
@@ -94,9 +94,9 @@ RCT_EXPORT_METHOD(connectWithToken:(NSString *) token
     else if(connectStatus == ConnectionStatus_Connecting){
         reject(@"ConnectionStatus_Connecting", @"ConnectionStatus_Connecting", nil);
     }
-
+    
     //NSLog(@"connect_status %ld", (long)[[self getClient] getConnectionStatus]);
-
+    
 }
 
 RCT_EXPORT_METHOD(sendTextMessage:(NSString *)type
@@ -105,11 +105,11 @@ RCT_EXPORT_METHOD(sendTextMessage:(NSString *)type
                   pushContent:(NSString *) pushContent
                   resolve:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject) {
-
+    
     RCTextMessage *messageContent = [RCTextMessage messageWithContent:content];
     [self sendMessage:type targetId:targetId content:messageContent pushContent:pushContent resolve:resolve reject:reject];
-
-
+    
+    
 }
 
 RCT_EXPORT_METHOD(sendImageMessage:(NSString *)type
@@ -118,13 +118,13 @@ RCT_EXPORT_METHOD(sendImageMessage:(NSString *)type
                   pushContent:(NSString *) pushContent
                   resolve:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject) {
-//    imagePath = [imagePath substringFromIndex:7];
+    //    imagePath = [imagePath substringFromIndex:7];
     UIImage *image = [UIImage imageWithContentsOfFile:imagePath];
     RCImageMessage * messageContent = [RCImageMessage messageWithImage:image];
-//
-//    RCImageMessage *messageContent = [RCImageMessage messageWithImageURI:imagePath];
-//    messageContent.originalImage = image;
-
+    //
+    //    RCImageMessage *messageContent = [RCImageMessage messageWithImageURI:imagePath];
+    //    messageContent.originalImage = image;
+    
     [self sendImageMsg:type targetId:targetId content:messageContent pushContent:pushContent resolve:resolve reject:reject];
 }
 
@@ -135,15 +135,15 @@ RCT_EXPORT_METHOD(getSDKVersion:(RCTPromiseResolveBlock)resolve
 }
 
 - (RCConnectionStatus)getResolve:(RCTPromiseResolveBlock)resolve
-            reject:(RCTPromiseRejectBlock)reject{
-
+                          reject:(RCTPromiseRejectBlock)reject{
+    
     return  [RCIMClient sharedRCIMClient].getConnectionStatus;
 }
 
 RCT_EXPORT_METHOD(disconnect:(BOOL)isReceivePush
                   resolve:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject
-                                            ) {
+                  ) {
     @try {
         [[self getClient] disconnect:isReceivePush];
         resolve(@[[NSNull null], @"disconnect success"]);
@@ -158,11 +158,11 @@ RCT_EXPORT_METHOD(getConnectionStatus:(RCTPromiseResolveBlock)resolve
     @try {
         RCConnectionStatus status = [[self getClient] getConnectionStatus];
         resolve(@(status));
-
+        
     } @catch (NSException *exception) {
         reject(@"status fail", nil,  nil);
     } @finally {
-
+        
     }
 }
 
@@ -171,18 +171,17 @@ RCT_EXPORT_METHOD(getCurrentNetworkStatus:(RCTPromiseResolveBlock)resolve
     @try {
         RCNetworkStatus status = [[self getClient] getCurrentNetworkStatus];
         resolve(@(status));
-
+        
     } @catch (NSException *exception) {
         reject(@"status fail", nil,  nil);
     } @finally {
-
+        
     }
 }
 
 
 RCT_EXPORT_METHOD(getConversationList:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject) {
-
     NSArray *conversationList = [[self getClient]
                                  getConversationList:@[@(ConversationType_PRIVATE),
                                                        @(ConversationType_DISCUSSION),
@@ -190,19 +189,15 @@ RCT_EXPORT_METHOD(getConversationList:(RCTPromiseResolveBlock)resolve
                                                        @(ConversationType_SYSTEM),
                                                        @(ConversationType_APPSERVICE),
                                                        @(ConversationType_PUBLICSERVICE)]];
-
+    
     NSMutableArray * arr = [[NSMutableArray alloc] init];
-
-
     for (RCConversation *conversation in conversationList) {
-
         //最后一条消息的发送日期
         //            NSDate*detaildate=[NSDate dateWithTimeIntervalSince1970:conversation.receivedTime];
         NSNumber * receivedTime     =   [NSNumber numberWithLongLong: conversation.receivedTime];
         NSNumber * converstationType=   [NSNumber numberWithUnsignedInteger:conversation.conversationType];
         NSNumber * unreadMsgCount   =   [NSNumber numberWithLongLong: conversation.unreadMessageCount];
         NSString * isTop            =   conversation.isTop?@"1":@"0";
-
         //组织会话json对象
         NSMutableDictionary *dict=[NSMutableDictionary dictionaryWithObjectsAndKeys:conversation.targetId ,         @"targetId",
                                    converstationType,              @"conversationType",
@@ -210,13 +205,11 @@ RCT_EXPORT_METHOD(getConversationList:(RCTPromiseResolveBlock)resolve
                                    receivedTime,                   @"lastMessageTime",
                                    unreadMsgCount,                 @"unreadMsgCount",
                                    isTop,                          @"isTop", nil];
-
-
         if([conversation.lastestMessage isMemberOfClass:[RCTextMessage class]]){
             RCTextMessage *testMessage = (RCTextMessage*)conversation.lastestMessage;
             dict[@"lastestMessage"] = [testMessage content];
             dict[@"lastestMessagetype"] = @"text";
-
+            
         }
         else if([conversation.lastestMessage isMemberOfClass:[RCImageMessage class]]) {
             dict[@"lastestMessage"] = @"[图片]";
@@ -226,30 +219,26 @@ RCT_EXPORT_METHOD(getConversationList:(RCTPromiseResolveBlock)resolve
             dict[@"lastestMessagetype"] = @"others";
         }
         [arr addObject:dict];
-
+        
     }
-
+    
     //格式化会话json对象
-    NSData  * jsonData = [NSJSONSerialization dataWithJSONObject:arr options:NSJSONWritingPrettyPrinted error: nil ];
-
-
-    NSString * jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-
-
-    resolve(jsonString);
-
+    //  NSData  * jsonData = [NSJSONSerialization dataWithJSONObject:arr options:NSJSONWritingPrettyPrinted error: nil ];
+    //    NSString * jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+    resolve(arr);
+    
 }
 
 /*!
  从服务器端获取之前的历史消息
-
+ 
  @param conversationType    会话类型，不支持聊天室会话类型
  @param targetId            目标会话ID
  @param recordTime          最早的发送时间，第一次可以传0
  @param count               需要获取的消息数量， 0< count <= 20
  @param successBlock        获取成功的回调 [messages:获取到的历史消息数组]
  @param errorBlock          获取失败的回调 [status:获取失败的错误码]
-
+ 
  @discussion 此方法从服务器端获取之前的历史消息，但是必须先开通历史消息云存储功能。
  */
 RCT_EXPORT_METHOD(getRemoteHistoryMessages:(int)conversationType
@@ -258,13 +247,13 @@ RCT_EXPORT_METHOD(getRemoteHistoryMessages:(int)conversationType
                   count:(int)count
                   resolve:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject){
-
+    
     void (^successBlock)(NSArray *messages);
     successBlock = ^(NSArray *messages) {
         NSArray *events = [[NSArray alloc] initWithObjects:messages,nil];
         resolve(@[[NSNull null], events]);
     };
-
+    
     void (^errorBlock)(RCErrorCode status);
     errorBlock = ^(RCErrorCode status) {
         NSString *errcode;
@@ -332,18 +321,18 @@ RCT_EXPORT_METHOD(getRemoteHistoryMessages:(int)conversationType
         }
         reject(errcode, errcode, nil);
     };
-
+    
     [[self getClient] getRemoteHistoryMessages: conversationType targetId:targetId recordTime:recordTime count:count success:successBlock error:errorBlock];
 }
 
 /*!
  获取某个会话中指定数量的最新消息实体
-
+ 
  @param conversationType    会话类型
  @param targetId            目标会话ID
  @param count               需要获取的消息数量
  @return                    消息实体RCMessage对象列表
-
+ 
  @discussion 此方法会获取该会话中指定数量的最新消息实体，返回的消息实体按照时间从新到旧排列。
  如果会话中的消息数量小于参数count的值，会将该会话中的所有消息返回。
  */
@@ -353,7 +342,7 @@ RCT_EXPORT_METHOD(getLatestMessages:(int)conversationType
                   resolve:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject){
     NSLog(@"-------------getLatestMessages start--------------");
-
+    
     NSArray *msgArray = [[self getClient] getLatestMessages:conversationType targetId:targetId count:count];
     if (msgArray) {
         NSLog(@"msg:  %@", msgArray);
@@ -368,13 +357,13 @@ RCT_EXPORT_METHOD(getLatestMessages:(int)conversationType
 
 /*!
  获取会话中，从指定消息之前、指定数量的最新消息实体
-
+ 
  @param conversationType    会话类型
  @param targetId            目标会话ID
  @param oldestMessageId     截止的消息ID
  @param count               需要获取的消息数量
  @return                    消息实体RCMessage对象列表
-
+ 
  @discussion 此方法会获取该会话中，oldestMessageId之前的、指定数量的最新消息实体，返回的消息实体按照时间从新到旧排列。
  返回的消息中不包含oldestMessageId对应那条消息，如果会话中的消息数量小于参数count的值，会将该会话中的所有消息返回。
  如：
@@ -387,7 +376,7 @@ RCT_EXPORT_METHOD(getHistoryMessages:(int)conversationType
                   resolve:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject){
     NSLog(@"-------------getHistoryMessage start--------------");
-
+    
     NSArray *msgArray = [[self getClient] getHistoryMessages:conversationType targetId:targetId oldestMessageId:oldestMessageId count:count];
     if (msgArray) {
         NSLog(@"msg:  %@", msgArray);
@@ -407,7 +396,7 @@ RCT_EXPORT_METHOD(searchMessages:(int)conversationType
                   resolve:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject){
     NSLog(@"-------------getHistoryMessage start--------------");
-
+    
     NSArray *msgArray = [[self getClient] searchMessages:conversationType targetId:targetId keyword:keyword count:count startTime:startTime];
     if (msgArray) {
         NSLog(@"msg:  %@", msgArray);
@@ -434,7 +423,7 @@ RCT_EXPORT_METHOD(searchConversations: (NSString *)keyword
         NSString *msgJsonString = [self convertMsgresultList:msgArray];
         NSLog(@"msg:  %@", msgJsonString);
         resolve(msgJsonString);
-
+        
     } else {
         reject(@"no_local_msg", @"There were no local msg", nil);
     }
@@ -477,7 +466,7 @@ RCT_EXPORT_METHOD(clearMessagesUnreadStatus:(NSString *)type
                   targetId:(NSString *)targetId
                   resolve:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject){
-
+    
     @try {
         bool result = [[self getClient] clearMessagesUnreadStatus:[self getConversationType:type] targetId:targetId];
         if(result)
@@ -488,13 +477,13 @@ RCT_EXPORT_METHOD(clearMessagesUnreadStatus:(NSString *)type
     @catch (NSException *exception) {
         reject(@"discoclearMessagesUnreadStatusnnect fail", @"discoclearMessagesUnreadStatusnnect fail", nil);
     }
-
+    
 }
 RCT_EXPORT_METHOD(removeConversation:(NSString *)type
                   targetId:(NSString *)targetId
                   resolve:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject){
-
+    
     @try {
         bool result = [[self getClient] removeConversation:[self getConversationType:type] targetId:targetId];
         if(result)
@@ -505,7 +494,7 @@ RCT_EXPORT_METHOD(removeConversation:(NSString *)type
     @catch (NSException *exception) {
         reject(@"removeConversation fail", @"removeConversation fail", nil);
     }
-
+    
 }
 
 
@@ -530,7 +519,7 @@ RCT_EXPORT_METHOD(removeConversation:(NSString *)type
     return conversationType;
 }
 /*
-    发送文本信息
+ 发送文本信息
  */
 -(void)sendMessage:(NSString *)type
           targetId:(NSString *)targetId
@@ -538,44 +527,44 @@ RCT_EXPORT_METHOD(removeConversation:(NSString *)type
        pushContent:(NSString *) pushContent
            resolve:(RCTPromiseResolveBlock)resolve
             reject:(RCTPromiseRejectBlock)reject {
-
+    
     RCConversationType conversationType = [self getConversationType:type];
-//    if([type isEqualToString:@"PRIVATE"]) {
-//        conversationType = ConversationType_PRIVATE;
-//    }
-//    else if([type isEqualToString:@"DISCUSSION"]) {
-//        conversationType = ConversationType_DISCUSSION;
-//    }
-//    else {
-//        conversationType = ConversationType_SYSTEM;
-//    }
-
+    //    if([type isEqualToString:@"PRIVATE"]) {
+    //        conversationType = ConversationType_PRIVATE;
+    //    }
+    //    else if([type isEqualToString:@"DISCUSSION"]) {
+    //        conversationType = ConversationType_DISCUSSION;
+    //    }
+    //    else {
+    //        conversationType = ConversationType_SYSTEM;
+    //    }
+    
     void (^successBlock)(long messageId);
     successBlock = ^(long messageId) {
         NSString* id = [NSString stringWithFormat:@"%ld",messageId];
         resolve(id);
     };
-
+    
     void (^errorBlock)(RCErrorCode nErrorCode , long messageId);
     errorBlock = ^(RCErrorCode nErrorCode , long messageId) {
         reject(nil, nil, nil);
     };
-
-
+    
+    
     [[self getClient] sendMessage:conversationType targetId:targetId content:content pushContent:pushContent success:successBlock error:errorBlock];
-
+    
 }
 
 /*
  发送图片信息
  */
 -(void)sendImageMsg:(NSString *)type
-          targetId:(NSString *)targetId
-           content:(RCMessageContent *)content
-       pushContent:(NSString *) pushContent
-           resolve:(RCTPromiseResolveBlock)resolve
-            reject:(RCTPromiseRejectBlock)reject {
-
+           targetId:(NSString *)targetId
+            content:(RCMessageContent *)content
+        pushContent:(NSString *) pushContent
+            resolve:(RCTPromiseResolveBlock)resolve
+             reject:(RCTPromiseRejectBlock)reject {
+    
     RCConversationType conversationType;
     if([type isEqualToString:@"PRIVATE"]) {
         conversationType = ConversationType_PRIVATE;
@@ -586,35 +575,35 @@ RCT_EXPORT_METHOD(removeConversation:(NSString *)type
     else {
         conversationType = ConversationType_SYSTEM;
     }
-
+    
     void (^successBlock)(long messageId);
     successBlock = ^(long messageId) {
         NSString* id = [NSString stringWithFormat:@"%ld",messageId];
         resolve(id);
     };
-
+    
     void (^errorBlock)(RCErrorCode nErrorCode , long messageId);
     errorBlock = ^(RCErrorCode nErrorCode , long messageId) {
         reject(nil, nil, nil);
     };
-
+    
     void (^processBlock)(int progress, long messageId);
     processBlock = ^(int progress, long messageId) {
         //processFunc(progress, messageId);
         NSLog(@"------upload image loading %d--------",progress);
     };
-
-
+    
+    
     [[self getClient] sendImageMessage:conversationType targetId:targetId content:content pushContent:pushContent progress:processBlock success:successBlock error:errorBlock];
-
+    
 }
 
 -(void)onReceived:(RCMessage *)message
              left:(int)nLeft
            object:(id)object {
-
+    
     NSLog(@"onRongCloudMessageReceived");
-
+    
     NSMutableDictionary *body = [self getEmptyBody];
     NSMutableDictionary *_message = [self getEmptyBody];
     _message[@"targetId"] = message.targetId;
@@ -634,16 +623,16 @@ RCT_EXPORT_METHOD(removeConversation:(NSString *)type
     else if([message.content isMemberOfClass:[RCRichContentMessage class]]) {
         RCRichContentMessage *richMessage = (RCRichContentMessage *)message.content;
     }
-
-
+    
+    
     body[@"left"] = [NSString stringWithFormat:@"%d",nLeft];
     body[@"message"] = _message;
     body[@"errcode"] = @"0";
-
+    
     [self sendEvent:@"onRongCloudMessageReceived" body:body];
 }
 /*
-    将RCMessage转化为NSMutableDictionary，以便之后转为json
+ 将RCMessage转化为NSMutableDictionary，以便之后转为json
  */
 -(NSMutableDictionary *)convertMessage:(RCMessage *)message{
     NSMutableDictionary *_message = [self getEmptyBody];
@@ -652,7 +641,7 @@ RCT_EXPORT_METHOD(removeConversation:(NSString *)type
     _message[@"messageId"] = [NSString stringWithFormat:@"%ld",message.messageId];
     _message[@"sentTime"] = [NSString stringWithFormat:@"%lld",message.sentTime];
     _message[@"sentStatus"] = [NSString stringWithFormat:@"%lu",message.sentStatus];
-
+    
     if ([message.content isMemberOfClass:[RCTextMessage class]]) {
         RCTextMessage *testMessage = (RCTextMessage *)message.content;
         _message[@"content"] = testMessage.content;
@@ -663,14 +652,14 @@ RCT_EXPORT_METHOD(removeConversation:(NSString *)type
         /*imageMessage.thumbnailImage 是一个UIImage对象，不能直接这样json化
          *如果需要缩略图信息，请将UIImage对象摊开JSON化
          */
-//        _message[@"thumbnailImage"] = imageMessage.thumbnailImage;
-
+        //        _message[@"thumbnailImage"] = imageMessage.thumbnailImage;
+        
     }
     return _message;
 }
 -(NSMutableDictionary *)convertsearchMessage:(RCSearchConversationResult *)message{
     NSMutableDictionary *_message = [self getEmptyBody];
-
+    
     _message[@"conversationType"]=  [NSNumber numberWithUnsignedInteger:message.conversation.conversationType];
     _message[@"targetId"]=  message.conversation.targetId;
     _message[@"lastMessageTime"] = [NSNumber numberWithLongLong:message.conversation.receivedTime];
@@ -678,8 +667,8 @@ RCT_EXPORT_METHOD(removeConversation:(NSString *)type
     _message[@"senderUserId"] = message.conversation.senderUserId;
     _message[@"sentTime"] = [NSNumber numberWithLongLong:message.conversation.sentTime];
     _message[@"sentStatus"] = [NSString stringWithFormat:@"%lu",message.conversation.sentStatus];
-
-
+    
+    
     if ([message.conversation.lastestMessage isMemberOfClass:[RCTextMessage class]]) {
         RCTextMessage *testMessage = (RCTextMessage *)message.conversation.lastestMessage;
         _message[@"lastestMessage"] = testMessage.content;
@@ -691,29 +680,29 @@ RCT_EXPORT_METHOD(removeConversation:(NSString *)type
          *如果需要缩略图信息，请将UIImage对象摊开JSON化
          */
         //        _message[@"thumbnailImage"] = imageMessage.thumbnailImage;
-
+        
     }
     return _message;
 }
 /*
-    将RCMessage的NSArray转为jsonString
+ 将RCMessage的NSArray转为jsonString
  */
 -(NSMutableArray *)convertMsgList:(NSArray *) msgList{
-
+    
     NSMutableArray * arr = [[NSMutableArray alloc] init];
-
+    
     for(RCMessage * message in msgList){
         NSMutableDictionary *dict = [self convertMessage: message];
         [arr addObject: dict];
     }
-        return arr;
-//    NSData  * jsonData = [NSJSONSerialization dataWithJSONObject:arr options:NSJSONWritingPrettyPrinted error: nil ];
-//    NSString * jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-
+    return arr;
+    //    NSData  * jsonData = [NSJSONSerialization dataWithJSONObject:arr options:NSJSONWritingPrettyPrinted error: nil ];
+    //    NSString * jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+    
 }
 
 -(NSString *)convertMsgresultList:(NSArray *) msgList{
-
+    
     NSMutableArray * arr = [[NSMutableArray alloc] init];
     //这里的message就是RCSearchConversationResult的对象了
     for(RCSearchConversationResult * message in msgList){
@@ -731,8 +720,9 @@ RCT_EXPORT_METHOD(removeConversation:(NSString *)type
 }
 
 -(void)sendEvent:(NSString *)name body:(NSMutableDictionary *)body {
-
+    
     [self.bridge.eventDispatcher sendDeviceEventWithName:name body:body];
 }
 
 @end
+
